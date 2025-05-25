@@ -9,7 +9,7 @@ import requests
 import os
 import json
 
-from agent_r1.tool.base import BaseTool
+from agent_r1.tools.base_tool import BaseTool
 
 class WikiSearchTool(BaseTool):
     name = "search"

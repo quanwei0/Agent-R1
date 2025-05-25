@@ -9,11 +9,12 @@ from dataclasses import dataclass
 from PIL import Image
 import numpy as np
 
-from .tensor_helper import TensorHelper, TensorConfig
-from agent_r1.tool.base import BaseToolEnv, BaseImageToolEnv
-
 from verl import DataProto
 from verl.protocol import pad_dataproto_to_divisor, unpad_dataproto
+
+from agent_r1.llm_agent.tensor_helper import TensorHelper, TensorConfig
+from agent_r1.envs.base_env import BaseToolEnv, BaseImageToolEnv
+
 
 @dataclass
 class ToolGenerationConfig:

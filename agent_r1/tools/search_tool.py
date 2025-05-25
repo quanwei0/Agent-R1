@@ -5,7 +5,7 @@ Search tool implementation for simulating internet searches
 from typing import Dict, List, Any
 import os
 
-from agent_r1.tool.base import BaseTool
+from agent_r1.tools.base_tool import BaseTool
 
 import faiss
 from FlagEmbedding import FlagAutoModel
@@ -29,7 +29,7 @@ class SearchTool(BaseTool):
         # Get the absolute path to the data directory
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # data_dir = os.path.abspath(os.path.join(current_dir, "../../../data/corpus/hotpotqa"))
-        data_dir = os.path.abspath(os.path.join(current_dir, "/home/yanruiran/workspace/Agent-R1/data/corpus/hotpotqa"))
+        data_dir = os.path.abspath(os.path.join(current_dir, "/root/Agent-R1/data/corpus/hotpotqa"))
         
         # Load index and corpus using absolute paths
         self.index = faiss.read_index(os.path.join(data_dir, "index.bin"))

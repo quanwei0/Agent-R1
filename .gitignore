@@ -5,3 +5,4 @@ data/
 ignore/
 checkpoints/
 .history/
+*.egg-info/

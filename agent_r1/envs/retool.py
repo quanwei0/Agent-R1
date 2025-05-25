@@ -1,5 +1,7 @@
-from agent_r1.tool.base import BaseToolEnv, BaseTool
 from typing import List, Tuple, Any
+
+from agent_r1.tools.base_tool import BaseTool
+from agent_r1.envs.base_env import BaseToolEnv
 
 class ReToolEnv(BaseToolEnv):
     def __init__(self, tools: List[BaseTool], max_tool_response_length: int):

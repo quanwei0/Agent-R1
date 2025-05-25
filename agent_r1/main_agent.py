@@ -1,68 +1,16 @@
-# Copyright 2024 Bytedance Ltd. and/or its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """
-Note that we don't combine the main with ray_trainer as ray_trainer is used by other main.
+adapted and modified from verl.trainer.main_ppo
 """
-from .agent_ray_trainer import RayAgentTrainer
-
-from agent_r1.tool.envs import _default_env
-from agent_r1.tool.tools import _default_tool
-
-import os
-
 import hydra
 import ray
 
-from .reward import load_reward_manager
+from agent_r1.tools import _default_tool
+from agent_r1.envs import _default_env
+from agent_r1.src.reward import load_reward_manager
+from agent_r1.trainers.agent_trainer import RayAgentTrainer
 
 
-def get_custom_reward_fn(config):
-    import importlib.util
-    import sys
-
-    reward_fn_config = config.get("custom_reward_function") or {}
-    file_path = reward_fn_config.get("path")
-    if not file_path:
-        return None
-
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Reward function file '{file_path}' not found.")
-
-    spec = importlib.util.spec_from_file_location("custom_module", file_path)
-    module = importlib.util.module_from_spec(spec)
-    try:
-        sys.modules["custom_module"] = module
-        spec.loader.exec_module(module)
-    except Exception as e:
-        raise RuntimeError(f"Error loading module from '{file_path}': {e}") from e
-
-    function_name = reward_fn_config.get("name")
-    if not hasattr(module, function_name):
-        raise AttributeError(f"Reward function '{function_name}' not found in '{file_path}'.")
-
-    print(f"using customized reward function '{function_name}' from '{file_path}'")
-    raw_fn = getattr(module, function_name)
-
-    reward_kwargs = dict(reward_fn_config.get("reward_kwargs", {}))
-
-    def wrapped_fn(*args, **kwargs):
-        return raw_fn(*args, **kwargs, **reward_kwargs)
-
-    return wrapped_fn
-
-
-@hydra.main(config_path="config", config_name="agent_trainer", version_base=None)
+@hydra.main(config_path="configs", config_name="agent_trainer", version_base=None)
 def main(config):
     run_agent(config)
 
@@ -105,10 +53,10 @@ class TaskRunner:
         # define worker classes
         if config.actor_rollout_ref.actor.strategy in ["fsdp", "fsdp2"]:
             assert config.critic.strategy in ["fsdp", "fsdp2"]
-            assert config.actor_rollout_ref.actor.strategy == config.critic.strategy
-            from .fsdp_workers import ActorRolloutRefWorker, CriticWorker
             from verl.single_controller.ray import RayWorkerGroup
+            # from verl.workers.fsdp_workers import ActorRolloutRefWorker, AsyncActorRolloutRefWorker, CriticWorker
             from verl.workers.fsdp_workers import AsyncActorRolloutRefWorker
+            from agent_r1.src.fsdp_workers import ActorRolloutRefWorker, CriticWorker
 
             actor_rollout_cls = AsyncActorRolloutRefWorker if config.actor_rollout_ref.rollout.mode == "async" else ActorRolloutRefWorker
             ray_worker_group_cls = RayWorkerGroup
@@ -117,14 +65,14 @@ class TaskRunner:
             assert config.actor_rollout_ref.actor.strategy == config.critic.strategy
             from verl.single_controller.ray.megatron import NVMegatronRayWorkerGroup
             from verl.workers.megatron_workers import ActorRolloutRefWorker, CriticWorker
-
+            
             actor_rollout_cls = ActorRolloutRefWorker
             ray_worker_group_cls = NVMegatronRayWorkerGroup
 
         else:
             raise NotImplementedError
 
-        from .agent_ray_trainer import ResourcePoolManager, Role
+        from verl.trainer.ppo.ray_trainer import ResourcePoolManager, Role
 
         role_worker_mapping = {
             Role.ActorRollout: ray.remote(actor_rollout_cls),
@@ -213,9 +161,9 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, env=None):
     Returns:
         dataset (Dataset): The dataset.
     """
-    from torch.utils.data import Dataset
+    # from torch.utils.data import Dataset
 
-    from .agent_rl_dataset import ToolRLDataset
+    # from verl.utils.dataset.rl_dataset import RLHFDataset
 
     # if "custom_cls" in data_config and data_config.custom_cls.get("path", None) is not None:
     #     from verl.utils.import_utils import load_extern_type
@@ -224,6 +172,10 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, env=None):
     #     if not issubclass(dataset_cls, Dataset):
     #         raise TypeError(f"The custom dataset class '{data_config.custom_cls.name}' from '{data_config.custom_cls.path}' must inherit from torch.utils.data.Dataset")
     # else:
+    #     dataset_cls = RLHFDataset
+        
+    from agent_r1.utils.agent_dataset import ToolRLDataset
+
     dataset_cls = ToolRLDataset
     print(f"Using dataset class: {dataset_cls.__name__}")
 

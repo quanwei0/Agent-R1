@@ -1,28 +1,16 @@
-# Copyright 2024 Bytedance Ltd. and/or its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from typing import List, Union, Optional
 import re
-from omegaconf import DictConfig
+from typing import List, Optional, Union
 
+
+from omegaconf import DictConfig
 from transformers import PreTrainedTokenizer, ProcessorMixin
 
-from verl.utils.model import compute_position_id_with_mask
 import verl.utils.torch_functional as verl_F
 from verl.utils.dataset.rl_dataset import RLHFDataset
+from verl.utils.model import compute_position_id_with_mask
 
-from agent_r1.tool.base import BaseToolEnv
+from agent_r1.envs.base_env import BaseToolEnv
+
 
 class ToolRLDataset(RLHFDataset):
     """
@@ -87,7 +75,8 @@ class ToolRLDataset(RLHFDataset):
             raw_prompt = self.tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
 
         if self.processor is not None:
-            from verl.utils.dataset.vision_utils import process_image, process_video
+            from verl.utils.dataset.vision_utils import (process_image,
+                                                         process_video)
 
             multi_modal_data = {}
 

@@ -1,17 +1,6 @@
-# Copyright 2025 Individual Contributor: Thibaut Barroyer
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+"""
+adapted and modified from verl.trainer.ppo.reward
+"""
 import os
 
 import ray
@@ -57,7 +46,7 @@ def get_custom_reward_fn(config):
 def load_reward_manager(config, tokenizer, num_examine, **reward_kwargs):
     reward_manager_name = config.reward_model.get("reward_manager", "agent")
     if reward_manager_name == "agent":
-        from .agent_reward_manager import AgentRewardManager
+        from agent_r1.rubrics.agent_reward_manager import AgentRewardManager
 
         reward_manager_cls = AgentRewardManager
     elif reward_manager_name == "naive":
